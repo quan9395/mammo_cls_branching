@@ -117,9 +117,9 @@ class ResNet(nn.Module):
 
         birads = self.fca(birads)
         density = self.fcb(density)
-        birads = self.fc1(embedding)
+        birads = self.fc1(birads)
 
-        density = self.fc2(embedding)
+        density = self.fc2(density)
         return None, birads, density
 
     def forward(self, x):
