@@ -37,14 +37,20 @@ class ResNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
-                                       dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
-                                       dilate=replace_stride_with_dilation[2])
 
+        self.layer3a = self._make_layer(block, 256, layers[2], stride=2,
+                                       dilate=replace_stride_with_dilation[1])
+        self.layer3b = self._make_layer(block, 256, layers[2], stride=2,
+                                       dilate=replace_stride_with_dilation[1])             
+        self.layer4a = self._make_layer(block, 512, layers[3], stride=2,
+                                       dilate=replace_stride_with_dilation[2])
+        self.layer4a = self._make_layer(block, 512, layers[3], stride=2,
+                                       dilate=replace_stride_with_dilation[2])
+                     
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout(0.4, inplace=False)
-        self.fc = nn.Linear(2048, 1024)
+        self.fca = nn.Linear(2048, 1024)
+        self.fcb = nn.Linear(2048, 1024)             
         self.fc1 = nn.Linear(1024, 3)
         self.fc2 = nn.Linear(1024, 4)
 
@@ -95,15 +101,22 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
 
-        x = self.layer1(x)
+        birads = self.layer1(x)
         x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        birads = self.layer3a(x)
+        density = self.layer3b(x)
+        birads = self.layer4a(birads)
+        density = self.layer4b(density)
 
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        embedding = self.dropout(x)
-        embedding = self.fc(embedding)
+        birads = self.avgpool(birads)
+        density = self.avgpool(density)
+        birads = torch.flatten(birads, 1)
+        density = torch.flatten(density, 1)
+        birads = self.dropout(birads)
+        density = self.dropout(density)
+
+        birads = self.fca(birads)
+        density = self.fcb(density)
         birads = self.fc1(embedding)
 
         density = self.fc2(embedding)
