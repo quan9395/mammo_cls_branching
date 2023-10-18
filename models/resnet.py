@@ -101,7 +101,7 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
 
-        birads = self.layer1(x)
+        x = self.layer1(x)
         x = self.layer2(x)
         birads = self.layer3a(x)
         density = self.layer3b(x)
