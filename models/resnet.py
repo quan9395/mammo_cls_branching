@@ -38,13 +38,11 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
 
-        self.layer3a = self._make_layer(block, 256, layers[2], stride=2,
-                                       dilate=replace_stride_with_dilation[1])
-        self.layer3b = self._make_layer(block, 256, layers[2], stride=2,
-                                       dilate=replace_stride_with_dilation[1])             
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
+                                       dilate=replace_stride_with_dilation[1])         
         self.layer4a = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
-        self.layer4a = self._make_layer(block, 512, layers[3], stride=2,
+        self.layer4b = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
                      
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -103,10 +101,10 @@ class ResNet(nn.Module):
 
         x = self.layer1(x)
         x = self.layer2(x)
-        birads = self.layer3a(x)
-        density = self.layer3b(x)
-        birads = self.layer4a(birads)
-        density = self.layer4b(density)
+        x = self.layer3(x)
+
+        birads = self.layer4a(x)
+        density = self.layer4b(x)
 
         birads = self.avgpool(birads)
         density = self.avgpool(density)
