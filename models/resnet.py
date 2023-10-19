@@ -40,17 +40,17 @@ class ResNet(nn.Module):
 
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])         
-        self.layer4a = self._make_layer(block, 512, layers[3], stride=2,
+        self.layer4a = self._make_layer(block, 256, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
-        self.layer4b = self._make_layer(block, 512, layers[3], stride=2,
+        self.layer4b = self._make_layer(block, 256, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
-                     
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout(0.4, inplace=False)
-        self.fca = nn.Linear(2048, 1024)
-        self.fcb = nn.Linear(2048, 1024)             
-        self.fc1 = nn.Linear(1024, 3)
-        self.fc2 = nn.Linear(1024, 4)
+        self.fca = nn.Linear(1024, 512)
+        self.fcb = nn.Linear(1024, 512)             
+        self.fc1 = nn.Linear(512, 3)
+        self.fc2 = nn.Linear(512, 4)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -86,6 +86,9 @@ class ResNet(nn.Module):
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
                             self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
+        if self.inplanes == 2048:  # Check the current number of channels
+            self.inplanes = 1024  # Set it to 1024 for layer4b
+
         for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups=self.groups,
                                 base_width=self.base_width, dilation=self.dilation,
@@ -105,11 +108,11 @@ class ResNet(nn.Module):
 
         birads = self.layer4a(x)
         density = self.layer4b(x)
-
         birads = self.avgpool(birads)
         density = self.avgpool(density)
         birads = torch.flatten(birads, 1)
         density = torch.flatten(density, 1)
+
         birads = self.dropout(birads)
         density = self.dropout(density)
 
